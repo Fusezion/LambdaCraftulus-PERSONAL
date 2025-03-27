@@ -26,6 +26,7 @@ fun getPrettyLambdaSymbol(block: Block): String {
     return getParsableLambdaSymbol(block).replace("\\", "λ")
 }
 
+@SuppressWarnings
 fun getBlockFromSymbol(symbol: String): Block? {
     return Block.fromNamespaceId(symbolToBlockMap[symbol] ?: "")
 }
