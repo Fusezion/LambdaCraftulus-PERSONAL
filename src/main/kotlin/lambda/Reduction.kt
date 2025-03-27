@@ -1,6 +1,9 @@
 package me.chriss99.lambda
 
 import me.chriss99.lambda.Expression.*
+import me.chriss99.parse.idOf
+import me.chriss99.parse.newID
+import java.util.UUID
 
 fun reduce(appl: Apply): Expression {
     return when (appl.apply) {
@@ -11,9 +14,17 @@ fun reduce(appl: Apply): Expression {
 
 private fun replace(expr: Expression, replace: Var, with: Expression): Expression {
     return when (expr) {
-        is Var -> if (expr.id == replace.id) with else expr
+        is Var -> if (expr.id == replace.id) replaceIDs(with) else expr
         is Lambda -> Lambda(expr.variable, replace(expr.body, replace, with))
         is Apply -> Apply(replace(expr.apply, replace, with), replace(expr.to, replace, with))
+    }
+}
+
+private fun replaceIDs(expr: Expression, ids: HashMap<UUID, UUID> = HashMap()): Expression {
+    return when (expr) {
+        is Var -> Var(expr.name, idOf(expr.id, ids))
+        is Lambda -> Lambda(Var(expr.variable.name, newID(expr.variable.id, ids)), replaceIDs(expr.body, ids))
+        is Apply -> Apply(replaceIDs(expr.apply, ids), replaceIDs(expr.to, ids))
     }
 }
 
