@@ -3,7 +3,7 @@ package me.chriss99.parse
 import me.chriss99.lambda.Expression
 import java.util.LinkedList
 
-fun parseNoParens(tokens: LinkedList<Token>) : Expression {
+fun parseNoParens(tokens: LinkedList<Token>): Expression {
     when (val current = tokens.pop()) {
         is Token.Var -> return Expression.Var(current.name)
         is Token.Lambda -> {
@@ -21,13 +21,13 @@ fun parseNoParens(tokens: LinkedList<Token>) : Expression {
     }
 }
 
-private inline fun <reified T> verifyToken(token: Token) : T {
+private inline fun <reified T> verifyToken(token: Token): T {
     if (token !is T)
         throw IllegalArgumentException("Unexpected Token! Expected ${T::class.simpleName}, got: $token")
     return token
 }
 
-fun parseWithParens(tokens: LinkedList<Token>) : Expression {
+fun parseWithParens(tokens: LinkedList<Token>): Expression {
     when (val current = tokens.pop()) {
         is Token.Var -> return Expression.Var(current.name)
         is Token.LParen ->
@@ -50,7 +50,7 @@ fun parseWithParens(tokens: LinkedList<Token>) : Expression {
     }
 }
 
-fun parse(tokens: LinkedList<Token>) : Expression {
+fun parse(tokens: LinkedList<Token>): Expression {
     when (val current = tokens.pop()) {
         is Token.Var -> return Expression.Var(current.name)
         is Token.Lambda -> {

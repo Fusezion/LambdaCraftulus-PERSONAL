@@ -3,7 +3,7 @@ package me.chriss99.lambda
 import me.chriss99.lambda.Expression.*
 import java.util.*
 
-fun lazyReducible(expr: Expression) : Apply? {
+fun lazyReducible(expr: Expression): Apply? {
     val queue: LinkedList<Expression> = LinkedList()
     queue.add(expr)
 
@@ -22,6 +22,6 @@ fun lazyReducible(expr: Expression) : Apply? {
     return null
 }
 
-fun lazyReduce(expr: Expression) : Expression {
+fun lazyReduce(expr: Expression): Expression {
     return reduceAll(expr, ::lazyReducible)
 }

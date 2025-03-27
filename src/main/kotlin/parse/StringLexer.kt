@@ -2,7 +2,7 @@ package me.chriss99.parse
 
 import java.util.LinkedList
 
-fun lex(source: String) : LinkedList<Token> {
+fun lex(source: String): LinkedList<Token> {
     return LinkedList(source.map { char ->
         when (char) {
             '\\' -> Token.Lambda
