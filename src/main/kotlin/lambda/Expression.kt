@@ -9,7 +9,7 @@ sealed class Expression {
         return when (this) {
             is Var -> name
             is Lambda -> "\\$variable.$body"
-            is Apply -> "(${if (apply !is Apply) "($apply)" else apply.toString()}$to)"
+            is Apply -> "(${if (apply is Lambda) "($apply)" else apply.toString()}$to)"
         }
     }
 }
