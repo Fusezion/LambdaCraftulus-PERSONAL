@@ -2,7 +2,6 @@ package me.chriss99.parse
 
 import me.chriss99.lambda.Expression
 import java.util.HashMap
-import java.util.LinkedList
 import java.util.UUID
 
 private inline fun <reified T> verifyToken(token: Token): T {
@@ -11,36 +10,47 @@ private inline fun <reified T> verifyToken(token: Token): T {
     return token
 }
 
-fun parse(tokens: LinkedList<Token>, ids: HashMap<String, UUID> = HashMap()): Expression {
-    when (val current = tokens.pop()) {
-        is Token.Var -> return Expression.Var(current.name, idOf(current.name, ids))
-        is Token.Lambda -> {
-            val variable = verifyToken<Token.Var>(tokens.pop())
-            verifyToken<Token.Dot>(tokens.pop())
 
-            return Expression.Lambda(Expression.Var(variable.name, newID(variable.name, ids)), parse(tokens, ids))
+fun parse(tokens: List<Token>): Expression {
+    return parse(tokens, 0, HashMap()).first
+}
+
+fun parse(tokens: List<Token>, i: Int, ids: HashMap<String, UUID>): Pair<Expression, Int> {
+    when (val current = tokens[i]) {
+        is Token.Var -> return Expression.Var(current.name, idOf(current.name, ids)) to i
+        is Token.Lambda -> {
+            val variable = verifyToken<Token.Var>(tokens[i+1])
+            val varExpr = Expression.Var(variable.name, newID(variable.name, ids))
+            verifyToken<Token.Dot>(tokens[i+2])
+
+            val (body, i) = parse(tokens, i+3, ids)
+            return Expression.Lambda(varExpr, body) to i
         }
-        is Token.LParen ->
-            when (tokens.peek()) {
-                is Token.Lambda -> {
-                    tokens.pop()
-                    val variable = verifyToken<Token.Var>(tokens.pop())
-                    verifyToken<Token.Dot>(tokens.pop())
-                    val lambda = Expression.Lambda(Expression.Var(variable.name, newID(variable.name, ids)), parse(tokens, ids))
-                    if (tokens.peek() is Token.RParen){
-                        tokens.pop()
-                        return lambda
-                    }
-                    val apply = Expression.Apply(lambda, parse(tokens, ids))
-                    verifyToken<Token.RParen>(tokens.pop())
-                    return apply
-                }
-                else -> {
-                    val expr = Expression.Apply(parse(tokens, ids), parse(tokens, ids))
-                    verifyToken<Token.RParen>(tokens.pop())
-                    return expr
-                }
+        is Token.LParen -> {
+            if (tokens[i+1] is Token.Lambda) {
+                val variable = verifyToken<Token.Var>(tokens[i+2])
+                val varExpr = Expression.Var(variable.name, newID(variable.name, ids))
+                verifyToken<Token.Dot>(tokens[i+3])
+                val (body, i) = parse(tokens, i+4, ids)
+
+                val lambda = Expression.Lambda(varExpr, body)
+                if (tokens[i+1] is Token.RParen)
+                    return lambda to i+1
+
+
+                val (expr, next) = parse(tokens, i+1, ids)
+
+                val apply = Expression.Apply(lambda, expr)
+                verifyToken<Token.RParen>(tokens[next+1])
+                return apply to next+1
             }
+
+            val (apply, i) = parse(tokens, i+1, ids)
+            val (to, next) = parse(tokens, i+1, ids)
+            verifyToken<Token.RParen>(tokens[next+1])
+
+            return Expression.Apply(apply, to) to next+1
+        }
         else -> throw IllegalArgumentException("Unexpected Token! Expected Var, Lambda or LParen, got: $current")
     }
 }

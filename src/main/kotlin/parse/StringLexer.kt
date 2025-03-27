@@ -1,9 +1,7 @@
 package me.chriss99.parse
 
-import java.util.LinkedList
-
-fun lex(source: String): LinkedList<Token> {
-    return LinkedList(source.map { char ->
+fun lex(source: String): List<Token> {
+    return source.map { char ->
         when (char) {
             '\\' -> Token.Lambda
             '.' -> Token.Dot
@@ -11,5 +9,5 @@ fun lex(source: String): LinkedList<Token> {
             ')' -> Token.RParen
             else -> if (char.isLetter()) Token.Var(char.toString()) else throw IllegalArgumentException()
         }
-    })
+    }
 }
