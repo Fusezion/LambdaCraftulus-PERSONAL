@@ -11,7 +11,7 @@ fun reduce(appl: Apply): Expression {
 
 private fun replace(expr: Expression, replace: Var, with: Expression): Expression {
     return when (expr) {
-        is Var -> if (expr.name == replace.name) with else expr
+        is Var -> if (expr.id == replace.id) with else expr
         is Lambda -> Lambda(expr.variable, replace(expr.body, replace, with))
         is Apply -> Apply(replace(expr.apply, replace, with), replace(expr.to, replace, with))
     }
