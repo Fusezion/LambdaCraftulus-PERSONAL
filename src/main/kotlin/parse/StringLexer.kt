@@ -4,7 +4,7 @@ fun lex(source: String): List<Token> {
     return source.replace(" ", "").map { stringToToken(it.toString()) ?: throw IllegalArgumentException("Unknown character: \"$it\"") }
 }
 
-private val tokens = listOf(
+private val tokenStringPairs = listOf(
     Token.Lambda to "\\",
     Token.Dot to ".",
     Token.LParen to "(",
@@ -12,8 +12,8 @@ private val tokens = listOf(
     Token.EndOfFile to ""
 )
 
-private val charToTokenMap = tokens.associate { it.second to it.first }
-private val tokenToCharMap = tokens.associate { it.first to it.second }
+private val charToTokenMap = tokenStringPairs.associate { it.second to it.first }
+private val tokenToCharMap = tokenStringPairs.associate { it.first to it.second }
 
 val stringToToken = { string: String ->
     if (string.fold(true) { a, b -> a && b.isLetter() })
