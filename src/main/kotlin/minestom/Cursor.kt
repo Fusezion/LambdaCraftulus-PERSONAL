@@ -24,6 +24,10 @@ fun createCursor(player: Player, instanceContainer: InstanceContainer) {
 
     cursor.setInstance(instanceContainer, player.position)
     MinecraftServer.getSchedulerManager().scheduleTask({
+        if (!player.isOnline) {
+            cursor.remove()
+            return@scheduleTask
+        }
         val target = player.getTargetBlockPosition(100) ?: Pos(0.0,0.0,0.0)
         cursor.teleport(Pos(target).withYaw(180f).withPitch(0f))
     }, TaskSchedule.tick(1), TaskSchedule.tick(1))

@@ -22,6 +22,10 @@ fun createBasePlate(player: Player, instanceContainer: InstanceContainer) {
     meta.viewRange = 1024f
     baseplate.setInstance(instanceContainer, player.position.withYaw(180f))
     MinecraftServer.getSchedulerManager().scheduleTask({
+        if (!player.isOnline) {
+            baseplate.remove()
+            return@scheduleTask
+        }
         baseplate.teleport(player.position.withYaw(180f).withPitch(0f).withZ(14.99))
     }, TaskSchedule.tick(1), TaskSchedule.tick(1))
 }
