@@ -2,7 +2,6 @@ package me.chriss99.lambda
 
 import me.chriss99.lambda.Expression.*
 import me.chriss99.parse.idOf
-import me.chriss99.parse.newID
 import java.util.UUID
 
 fun reduce(appl: Apply): Expression {
@@ -26,6 +25,14 @@ private fun replaceIDs(expr: Expression, ids: HashMap<UUID, UUID> = HashMap()): 
         is Lambda -> Lambda(Var(expr.variable.name, newID(expr.variable.id, ids)), replaceIDs(expr.body, ids))
         is Apply -> Apply(replaceIDs(expr.apply, ids), replaceIDs(expr.to, ids))
     }
+}
+
+private fun newID(name: UUID, ids: java.util.HashMap<UUID, UUID>): UUID {
+    if (ids.containsKey(name))
+        throw IllegalStateException("Non unique variables! \"$name\" is already bound, but found Lambda defining it as its variable!")
+    val id = UUID.randomUUID()
+    ids[name] = id
+    return id
 }
 
 private fun reduceAt(expr: Expression, appl: Apply): Expression {
