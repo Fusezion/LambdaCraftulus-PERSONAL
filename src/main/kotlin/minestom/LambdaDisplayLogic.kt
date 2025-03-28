@@ -7,10 +7,8 @@ import me.chriss99.parse.ParsingException
 import me.chriss99.parse.lex
 import me.chriss99.parse.parse
 import minestom.BASE_BLOCK
-import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
-import net.minestom.server.color.Color
 import net.minestom.server.coordinate.Point
 import net.minestom.server.coordinate.Vec
 import net.minestom.server.entity.Entity
@@ -60,7 +58,7 @@ object LambdaParser {
     fun parseBlocks(start: Point, instance: Instance): String {
         var expression = ""
         var target = start
-        repeat(10) {
+        repeat(100) {
             target = target.add(-1.0, 0.0, 0.0)
             when (instance.getBlock(target)) {
                 BASE_BLOCK -> return@repeat
@@ -72,7 +70,8 @@ object LambdaParser {
             val parsed = parse(lex(expression))
             lazyReduce(parsed).toString()
         } catch (e: ParsingException) {
-            e.toString()
+            createErrorSymbol("^", start.add(-1.0 * e.indexes.last(), -2.5, 0.0), instance)
+            ""
         }
     }
 }
@@ -89,6 +88,7 @@ class LambdaBlockManager {
         return when (block.material()) {
             Material.STICKY_PISTON -> Block.STICKY_PISTON.withProperty("facing", "west")
             Material.PISTON -> Block.PISTON.withProperty("facing", "east")
+            Material.JIGSAW -> Block.JIGSAW.withProperty("orientation", "west_up")
             else -> Block.fromNamespaceId(block.material().namespace()) ?: Block.RED_CONCRETE
         }
     }
