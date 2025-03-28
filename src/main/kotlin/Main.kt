@@ -1,6 +1,7 @@
 package me.chriss99
 
 import me.chriss99.minestom.lambdaDisplayLogic
+import minestom.createVoidBiome
 import minestom.initInstance
 import minestom.onJoin
 import net.minestom.server.MinecraftServer
@@ -8,10 +9,9 @@ import net.minestom.server.extras.MojangAuth
 
 fun main() {
     val minecraftServer = MinecraftServer.init()
-    val instanceManager = MinecraftServer.getInstanceManager()
-    val instanceContainer = instanceManager.createInstanceContainer()
     val eventHandler = MinecraftServer.getGlobalEventHandler()
-    initInstance(instanceContainer)
+    createVoidBiome()
+    val instanceContainer = initInstance()
     onJoin(eventHandler, instanceContainer)
     lambdaDisplayLogic(eventHandler)
     MojangAuth.init()
