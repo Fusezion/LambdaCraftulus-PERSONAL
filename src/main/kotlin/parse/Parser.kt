@@ -19,37 +19,21 @@ fun parse(tokens: List<Token>, i: Int, ids: HashMap<String, UUID>): Pair<Express
     when (val current = tokens[i]) {
         is Token.Var -> return Expression.Var(current.name, idOf(current.name, ids)) to i
         is Token.Lambda -> {
-            val variable = verifyToken<Token.Var>(tokens[i+1])
-            val varExpr = Expression.Var(variable.name, newID(variable.name, ids))
+            val variable = verifyToken<Token.Var>(tokens[i+1]).name.let { Expression.Var(it, newID(it, ids)) }
             verifyToken<Token.Dot>(tokens[i+2])
-
             val (body, i) = parse(tokens, i+3, ids)
-            return Expression.Lambda(varExpr, body) to i
+
+            return Expression.Lambda(variable, body) to i
         }
         is Token.LParen -> {
-            if (tokens[i+1] is Token.Lambda) {
-                val variable = verifyToken<Token.Var>(tokens[i+2])
-                val varExpr = Expression.Var(variable.name, newID(variable.name, ids))
-                verifyToken<Token.Dot>(tokens[i+3])
-                val (body, i) = parse(tokens, i+4, ids)
+            val (expr, i) = parse(tokens, i+1, ids)
+            if (tokens[i+1] is Token.RParen)
+                return expr to i+1
 
-                val lambda = Expression.Lambda(varExpr, body)
-                if (tokens[i+1] is Token.RParen)
-                    return lambda to i+1
-
-
-                val (expr, next) = parse(tokens, i+1, ids)
-
-                val apply = Expression.Apply(lambda, expr)
-                verifyToken<Token.RParen>(tokens[next+1])
-                return apply to next+1
-            }
-
-            val (apply, i) = parse(tokens, i+1, ids)
             val (to, next) = parse(tokens, i+1, ids)
             verifyToken<Token.RParen>(tokens[next+1])
 
-            return Expression.Apply(apply, to) to next+1
+            return Expression.Apply(expr, to) to next+1
         }
         else -> throw IllegalArgumentException("Unexpected Token! Expected Var, Lambda or LParen, got: $current")
     }
