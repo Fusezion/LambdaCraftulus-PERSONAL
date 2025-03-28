@@ -6,7 +6,7 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 fun parse(tokens: List<Token>): Expression {
-    return parse(tokens, 0, HashMap()).first
+    return parse(listOf(*tokens.toTypedArray(), Token.EndOfFile), 0, HashMap()).first
 }
 
 fun parse(tokens: List<Token>, i: Int, ids: HashMap<String, UUID>): Pair<Expression, Int> {

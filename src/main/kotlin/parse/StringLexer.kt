@@ -8,7 +8,8 @@ private val tokens = listOf(
     Token.Lambda to "\\",
     Token.Dot to ".",
     Token.LParen to "(",
-    Token.RParen to ")"
+    Token.RParen to ")",
+    Token.EndOfFile to ""
 )
 
 private val charToTokenMap = tokens.associate { it.second to it.first }
