@@ -8,9 +8,10 @@ import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.metadata.display.TextDisplayMeta
+import net.minestom.server.instance.InstanceContainer
 import net.minestom.server.timer.TaskSchedule
 
-fun createCursor(player: Player) {
+fun createCursor(player: Player, instanceContainer: InstanceContainer) {
     val cursor = Entity(EntityType.TEXT_DISPLAY)
     var meta = cursor.entityMeta as TextDisplayMeta
     meta = createSquareDisplay(meta)
@@ -21,7 +22,7 @@ fun createCursor(player: Player) {
     meta.viewRange = 1024f
     meta.text = Component.text("█")
 
-    cursor.setInstance(player.instance)
+    cursor.setInstance(instanceContainer, player.position)
     MinecraftServer.getSchedulerManager().scheduleTask({
         val target = player.getTargetBlockPosition(100) ?: Pos(0.0,0.0,0.0)
         cursor.teleport(Pos(target).withYaw(180f).withPitch(0f))

@@ -16,10 +16,11 @@ val BASE_BLOCK: Block = Block.GRAY_CONCRETE
 
 fun initInstance(): InstanceContainer {
      val dimension = DimensionType.builder()
-        .height(400)
-        .minY(0)
-        .logicalHeight(400)
-        .build()
+         .height(400)
+         .minY(-64)
+         .logicalHeight(400)
+         .ambientLight(15f)
+         .build()
     val dimKey = MinecraftServer.getDimensionTypeRegistry().register("void", dimension)
     val instanceContainer = MinecraftServer.getInstanceManager().createInstanceContainer(dimKey)
     instanceContainer.timeRate = 0
@@ -34,6 +35,7 @@ fun initInstance(): InstanceContainer {
             BASE_BLOCK
         )
     }
+    instanceContainer.loadChunk(0, 0)
     return instanceContainer
 }
 

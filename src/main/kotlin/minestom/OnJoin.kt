@@ -29,9 +29,9 @@ fun onJoin(eventHandler: GlobalEventHandler, instanceContainer: InstanceContaine
                 player.inventory.addItemStack(item)
             }
             player.isFlying = true
-            createBasePlate(player)
-            createCursor(player)
-        }, TaskSchedule.tick(20), TaskSchedule.stop())
+            createBasePlate(player, instanceContainer)
+            createCursor(player, instanceContainer)
+        }, TaskSchedule.tick(5), TaskSchedule.stop())
     }
 
     eventHandler.addListener(PlayerSkinInitEvent::class.java) { event ->
