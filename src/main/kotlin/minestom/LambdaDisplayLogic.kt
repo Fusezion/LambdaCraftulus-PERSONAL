@@ -3,6 +3,7 @@ package me.chriss99.minestom
 import me.chriss99.lambda.lazyReduce
 import me.chriss99.parse.lex
 import me.chriss99.parse.parse
+import minestom.BASE_BLOCK
 import net.kyori.adventure.text.Component
 import net.minestom.server.coordinate.Point
 import net.minestom.server.coordinate.Vec
@@ -10,61 +11,67 @@ import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.metadata.display.TextDisplayMeta
 import net.minestom.server.event.GlobalEventHandler
-import net.minestom.server.event.player.PlayerBlockBreakEvent
-import net.minestom.server.event.player.PlayerBlockInteractEvent
-import net.minestom.server.event.player.PlayerBlockPlaceEvent
+import net.minestom.server.event.player.PlayerHandAnimationEvent
+import net.minestom.server.event.player.PlayerUseItemEvent
 import net.minestom.server.instance.Instance
 import net.minestom.server.instance.block.Block
+import net.minestom.server.item.ItemStack
 import net.minestom.server.tag.Tag
 import java.util.*
 
 fun lambdaDisplayLogic(eventHandler: GlobalEventHandler) {
-    eventHandler.addListener(PlayerBlockPlaceEvent::class.java) { event ->
+    eventHandler.addListener(PlayerUseItemEvent::class.java) { event ->
         event.isCancelled = true
-        event.blockFace
-        val instance = event.instance
-        val clicked = event.blockPosition.sub(event.blockFace.toDirection().vec())
-        if (instance.getBlock(clicked) != Block.BLACK_STAINED_GLASS) {
-            return@addListener
-        }
-        setLambdaBlock(event.block, clicked, instance)
-    }
-
-    eventHandler.addListener(PlayerBlockBreakEvent::class.java) { event ->
-        event.isCancelled = true
-        val instance = event.instance
-        instance.getEntityByUuid(event.block.getTag(Tag.UUID("link")))?.remove()
-
-        instance.setBlock(event.blockPosition, Block.BLACK_STAINED_GLASS)
-    }
-
-    eventHandler.addListener(PlayerBlockInteractEvent::class.java) { event ->
-        event.isCancelled = true
-        val instance = event.instance
-        var target = event.blockPosition
-        if (event.block.name() == "minecraft:diamond_block") {
-
-            var expression = ""
-            var i = 0
-            while (instance.getBlock(target) != Block.BLACK_STAINED_GLASS) {
-                i++
-                if (i > 100) {
-                    return@addListener
-                }
-                target = target.add(1, 0, 0)
-                expression += getParsableLambdaSymbol(instance.getBlock(target))
+        val blockPosition = event.player.getTargetBlockPosition(100)
+        if (blockPosition != null) {
+            val instance = event.instance
+            val item = event.player.itemInMainHand
+            val block = instance.getBlock(blockPosition)
+            when (block) {
+                BASE_BLOCK -> setLambdaBlock(item, blockPosition, instance)
+                else -> event.player.sendMessage(parseBlocks(blockPosition, instance))
             }
-            println(expression)
-            val reduced = lazyReduce(parse(lex(expression)))
-            event.player.sendMessage(reduced.toString())
+        }
+    }
+    eventHandler.addListener(PlayerHandAnimationEvent::class.java) { event ->
+        event.isCancelled = true
+        val blockPosition = event.player.getTargetBlockPosition(100)
+        if (blockPosition != null) {
+            val instance = event.instance
+            val block = instance.getBlock(blockPosition)
+            val tag = block.getTag(Tag.UUID("link"))
+            if (tag != null) {
+                instance.getEntityByUuid(tag)?.remove()
+                instance.setBlock(blockPosition, BASE_BLOCK)
+            }
         }
     }
 }
 
-fun setLambdaBlock(block: Block, clicked: Point, instance: Instance) {
+fun parseBlocks(start: Point, instance: Instance): String {
+    var expression = ""
+    var i = 0
+    var target = start
+    while (i < 10) {
+        target = target.add(-1.0, 0.0, 0.0)
+        when (instance.getBlock(target)) {
+            BASE_BLOCK -> {
+                i++
+                continue
+            }
+            Block.DIAMOND_BLOCK -> return "Hit another block"
+            else -> i = 0
+        }
+        expression += getParsableLambdaSymbol(instance.getBlock(target))
+    }
+    val reduced = lazyReduce(parse(lex(expression)))
+    return reduced.toString()
+}
 
+fun setLambdaBlock(item: ItemStack, clicked: Point, instance: Instance) {
+    val block = getLambdaBlock(item)
     val symbol = createLambdaSymbol(block, clicked, instance)
-    val lambdaBlock = getLambdaBlock(block)
+    val lambdaBlock = block
         .withTag(
             Tag.UUID("link"),
             symbol
@@ -77,20 +84,20 @@ fun createLambdaSymbol(block: Block, clicked: Point, instance: Instance): UUID {
     val display = Entity(EntityType.TEXT_DISPLAY)
     val meta = display.entityMeta as TextDisplayMeta
     meta.text = Component.text(getPrettyLambdaSymbol(block))
-    meta.scale = Vec(7.0,7.0,7.0)
+    meta.scale = Vec(7.0,7.0,0.01)
     meta.isShadow = true
     meta.backgroundColor = 0x0000000
     meta.isHasNoGravity = true
-
-    display.setInstance(instance, clicked.add(1.0,1.0,0.0))
+    meta.isSeeThrough = true
+    display.setInstance(instance, clicked.add(1.0,1.0,-0.01))
     display.setView(-180f, 0f)
     return display.uuid
 }
 
-fun getLambdaBlock(block: Block): Block {
+fun getLambdaBlock(block: ItemStack): Block {
     return when (block) {
-        Block.STICKY_PISTON -> Block.STICKY_PISTON.withProperty("facing", "east")
-        Block.PISTON -> Block.PISTON.withProperty("facing", "west")
-        else -> block
+        Block.STICKY_PISTON -> Block.STICKY_PISTON.withProperty("facing", "west")
+        Block.PISTON -> Block.PISTON.withProperty("facing", "east")
+        else -> Block.fromNamespaceId(block.material().namespace()) ?: Block.RED_CONCRETE
     }
 }
