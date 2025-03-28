@@ -69,9 +69,22 @@ object LambdaParser {
         return try {
             val parsed = parse(lex(expression))
             lazyReduce(parsed).toString()
-        } catch (e: ParsingException) {
-            createErrorSymbol("^", start.add(-1.0 * e.indexes.last(), -2.5, 0.0), instance)
-            ""
+        } catch (p: ParsingException) {
+
+            val marker = List(p.tokens.size) { " " }.toMutableList()
+            for (i in p.indexes.first()..p.indexes.last())
+                marker[i] = "-"
+            for (i in p.indexes)
+                marker[i] = "+"
+            marker[p.indexes.last()] = "^"
+
+
+            for (i in 0..<marker.size) {
+                val char = marker[i]
+                if (char != " ")
+                    createErrorSymbol(char, start.add(-1-1.0 * i, -2.5, 0.0), instance)
+            }
+            return p.message ?: "No message provided"
         }
     }
 }
