@@ -3,13 +3,7 @@ package me.chriss99.parse
 import me.chriss99.lambda.Expression
 import java.util.HashMap
 import java.util.UUID
-
-private inline fun <reified T> verifyToken(token: Token): T {
-    if (token !is T)
-        throw IllegalArgumentException("Unexpected Token! Expected ${T::class.simpleName}, got: $token")
-    return token
-}
-
+import kotlin.reflect.KClass
 
 fun parse(tokens: List<Token>): Expression {
     return parse(tokens, 0, HashMap()).first
@@ -19,29 +13,29 @@ fun parse(tokens: List<Token>, i: Int, ids: HashMap<String, UUID>): Pair<Express
     when (val current = tokens[i]) {
         is Token.Var -> return Expression.Var(current.name, idOf(current.name, ids)) to i
         is Token.Lambda -> {
-            val variable = verifyToken<Token.Var>(tokens[i+1]).name.let { Expression.Var(it, newID(it, ids)) }
-            verifyToken<Token.Dot>(tokens[i+2])
+            val variable = verifyToken<Token.Var>(tokens, i+1, i).name.let { Expression.Var(it, newID(it, ids, tokens, i+1)) }
+            verifyToken<Token.Dot>(tokens, i+2, i, i+1)
             val (body, i) = parse(tokens, i+3, ids)
 
             return Expression.Lambda(variable, body) to i
         }
         is Token.LParen -> {
-            val (expr, i) = parse(tokens, i+1, ids)
-            if (tokens[i+1] is Token.RParen)
-                return expr to i+1
+            val (expr, exprEnd) = parse(tokens, i+1, ids)
+            if (tokens[exprEnd+1] is Token.RParen)
+                return expr to exprEnd+1
 
-            val (to, next) = parse(tokens, i+1, ids)
-            verifyToken<Token.RParen>(tokens[next+1])
+            val (to, next) = parse(tokens, exprEnd+1, ids)
+            verifyToken<Token.RParen>(tokens, next+1, i)
 
             return Expression.Apply(expr, to) to next+1
         }
-        else -> throw IllegalArgumentException("Unexpected Token! Expected Var, Lambda or LParen, got: $current")
+        else -> throw ParsingException.NoMatchingPatternException(tokens, i, Token.Var::class, Token.Lambda::class, Token.LParen::class)
     }
 }
 
-fun <T> newID(name: T, ids: HashMap<T, UUID>): UUID {
+private fun newID(name: String, ids: HashMap<String, UUID>, tokens: List<Token>, index: Int): UUID {
     if (ids.containsKey(name))
-        throw IllegalStateException("Non unique arguments! $name already exists, but found Lambda defining it as its variable!")
+        throw ParsingException.NonUniqueVariableException(tokens, name, index)
     val id = UUID.randomUUID()
     ids[name] = id
     return id
@@ -49,4 +43,26 @@ fun <T> newID(name: T, ids: HashMap<T, UUID>): UUID {
 
 fun <T> idOf(name: T, ids: HashMap<T, UUID>): UUID {
     return ids[name] ?: UUID.randomUUID().also { ids[name] = it }
+}
+
+private inline fun <reified T : Token> verifyToken(tokens: List<Token>, index: Int, vararg indexes: Int): T {
+    val token = tokens[index]
+    if (token !is T)
+        throw ParsingException.UnexpectedTokenException(tokens, T::class, token::class, *indexes, index)
+    return token
+}
+
+sealed class ParsingException(val tokens: List<Token>, vararg val indexes: Int, message: String) : Exception(message) {
+    override fun toString(): String {
+        val message = "${this::class.simpleName}: $message"
+
+        return message
+    }
+
+    class UnexpectedTokenException(tokens: List<Token>, expected: KClass<out Token>, found: KClass<out Token>, vararg indexes: Int) : ParsingException(tokens, *indexes,
+        message = "Expected ${expected.simpleName} but found ${found.simpleName}.")
+    class NoMatchingPatternException(tokens: List<Token>, index: Int, vararg expected: KClass<out Token>) : ParsingException(tokens, index,
+        message = "Expected one of ${expected.map { it.simpleName }} but found ${tokens[index]::class.simpleName}.")
+    class NonUniqueVariableException(tokens: List<Token>, name: String, index: Int) : ParsingException(tokens, index,
+        message = "\"$name\" is already bound, but found Lambda binding it as its variable!")
 }
