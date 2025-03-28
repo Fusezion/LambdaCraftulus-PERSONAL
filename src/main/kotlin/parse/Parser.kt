@@ -54,9 +54,18 @@ private inline fun <reified T : Token> verifyToken(tokens: List<Token>, index: I
 
 sealed class ParsingException(val tokens: List<Token>, vararg val indexes: Int, message: String) : Exception(message) {
     override fun toString(): String {
-        val message = "${this::class.simpleName}: $message"
+        var message = "${this::class.simpleName}: $message" + System.lineSeparator()
+        message += tokens.fold("") { a, b -> a + tokenToString(b) }
 
-        return message
+        val marker = List(tokens.size) { " " }.toMutableList()
+        for (i in indexes.first()..indexes.last())
+            marker[i] = "-"
+        for (i in indexes)
+            marker[i] = "+"
+        marker[indexes.last()] = "^"
+
+
+        return message + System.lineSeparator() + marker.fold("") { a, b -> a + b }
     }
 
     class UnexpectedTokenException(tokens: List<Token>, expected: KClass<out Token>, found: KClass<out Token>, vararg indexes: Int) : ParsingException(tokens, *indexes,
