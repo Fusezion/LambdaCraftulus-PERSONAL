@@ -1,7 +1,7 @@
 package me.chriss99.parse
 
 fun lex(source: String): List<Token> {
-    return source.map { stringToToken(it.toString()) ?: throw IllegalArgumentException("Unknown character: \"$it\"") }
+    return source.replace(" ", "").map { stringToToken(it.toString()) ?: throw IllegalArgumentException("Unknown character: \"$it\"") }
 }
 
 private val tokens = listOf(
