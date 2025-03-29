@@ -2,6 +2,7 @@ package me.chriss99.minestom
 
 import net.minestom.server.instance.block.Block
 import net.minestom.server.instance.block.Block.*
+import net.minestom.server.item.Material
 
 enum class BlockSymbol(val block: Block, val symbol: String, val prettySymbol: String = symbol) {
     DEFINE(JIGSAW.withProperty("orientation", "west_up"), "!", ""),
@@ -22,20 +23,7 @@ enum class BlockSymbol(val block: Block, val symbol: String, val prettySymbol: S
     IMPORT(BOOKSHELF, ":", ""),
 }
 
-private val blockToSymbolMap = BlockSymbol.entries.associate { it.block to it.symbol }
-private val blockToPrettySymbolMap = BlockSymbol.entries.associate { it.block to it.prettySymbol }
-private val symbolToBlockMap = BlockSymbol.entries.associate { it.symbol to it.block }
-val materialToBlockMap = BlockSymbol.entries.associate { it.block.registry().material() to it.block }
+private val materialToBlockSymbolMap = BlockSymbol.entries.associateBy { it.block.registry().material() }
 
-fun getParsableLambdaSymbol(block: Block): String {
-    return blockToSymbolMap[block] ?: ""
-}
-
-fun getPrettyLambdaSymbol(block: Block): String {
-    return blockToPrettySymbolMap[block] ?: ""
-}
-
-@SuppressWarnings
-fun getBlockFromSymbol(symbol: String): Block? {
-    return symbolToBlockMap[symbol]
-}
+fun fromMaterial(material: Material): BlockSymbol? = materialToBlockSymbolMap[material]
+fun fromBlock(block: Block): BlockSymbol? = materialToBlockSymbolMap[block.registry().material()]

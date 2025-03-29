@@ -60,12 +60,13 @@ object LambdaParser {
         var target = start
         repeat(100) {
             target = target.add(-1.0, 0.0, 0.0)
-            when (instance.getBlock(target)) {
-                BASE_BLOCK -> return@repeat
-                Block.DIAMOND_BLOCK -> return "Hit another block"
-                else -> expression += getParsableLambdaSymbol(instance.getBlock(target))
-            }
+            val block = instance.getBlock(target)
+
+            if (BlockSymbol.DEFINE.block.compare(block))
+                return@repeat
+            expression += fromBlock(block)?.symbol ?: " "
         }
+
         return try {
             val parsed = parse(lex(expression))
             lazyReduce(parsed).toString()
@@ -91,7 +92,7 @@ object LambdaParser {
 
 class LambdaBlockManager {
     fun setLambdaBlock(item: ItemStack, clicked: Point, instance: Instance) {
-        val block = materialToBlockMap[item.material()] ?: return
+        val block = fromMaterial(item.material())?.block ?: item.material().block() ?: return
         val symbol = LambdaSymbolManager.createLambdaSymbol(block, clicked, instance)
         val lambdaBlock = block.withTag(Tag.UUID("link"), symbol)
         instance.setBlock(clicked, lambdaBlock)
@@ -101,7 +102,7 @@ class LambdaBlockManager {
 object LambdaSymbolManager {
     fun createLambdaSymbol(block: Block, clicked: Point, instance: Instance): UUID {
         val (meta, display) = createSymbol()
-        meta.text = Component.text(getPrettyLambdaSymbol(block))
+        meta.text = Component.text(fromBlock(block)?.prettySymbol ?: "")
         display.setInstance(instance, clicked.add(0.65, 1.0, -0.01))
         display.setView(-180f, 0f)
         return display.uuid
