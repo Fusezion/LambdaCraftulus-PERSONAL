@@ -15,6 +15,12 @@ val blockSymbols = listOf(
     BlockSymbol(BLUE_CONCRETE, "b"),
     BlockSymbol(GREEN_CONCRETE, "g"),
     BlockSymbol(CYAN_CONCRETE, "c"),
+    BlockSymbol(YELLOW_CONCRETE, "y"),
+    BlockSymbol(MAGENTA_CONCRETE, "m"),
+    BlockSymbol(PURPLE_CONCRETE, "p"),
+    BlockSymbol(ORANGE_CONCRETE, "o"),
+    BlockSymbol(LIME_CONCRETE, "l"),
+    BlockSymbol(WHITE_CONCRETE, "w"),
     BlockSymbol(BOOKSHELF, ":", ""),
 )
 
