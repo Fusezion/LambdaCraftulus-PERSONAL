@@ -44,12 +44,6 @@ fun createVoidBiome() {
         BiomeEffects.builder()
             .skyColor(0x000000)
             .fogColor(0x000000)
-            .biomeParticle(
-                BiomeParticle(
-                    0.001F,
-                    Particle.BLOCK_CRUMBLE.withBlock(Block.BLACK_CONCRETE)
-                )
-            )
             .build()
         )
         .precipitation(Biome.Precipitation.NONE)
