@@ -1,6 +1,6 @@
 package minestom
 
-import me.chriss99.minestom.blockSymbols
+import me.chriss99.minestom.BlockSymbol
 import me.chriss99.minestom.createBasePlate
 import me.chriss99.minestom.createCursor
 import net.minestom.server.MinecraftServer
@@ -12,7 +12,6 @@ import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import net.minestom.server.event.player.PlayerSkinInitEvent
 import net.minestom.server.instance.InstanceContainer
 import net.minestom.server.item.ItemStack
-import net.minestom.server.item.Material
 import net.minestom.server.timer.TaskSchedule
 
 fun onJoin(eventHandler: GlobalEventHandler, instanceContainer: InstanceContainer) {
@@ -23,7 +22,7 @@ fun onJoin(eventHandler: GlobalEventHandler, instanceContainer: InstanceContaine
         player.gameMode = GameMode.ADVENTURE
 
         MinecraftServer.getSchedulerManager().scheduleTask({
-            blockSymbols.forEach { blockSymbol ->
+            BlockSymbol.entries.forEach { blockSymbol ->
                 val material = blockSymbol.block.registry().material() ?: return@forEach
                 val item = ItemStack.of(material)
                 player.inventory.addItemStack(item)
