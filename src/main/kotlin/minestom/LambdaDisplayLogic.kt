@@ -91,19 +91,10 @@ object LambdaParser {
 
 class LambdaBlockManager {
     fun setLambdaBlock(item: ItemStack, clicked: Point, instance: Instance) {
-        val block = getLambdaBlock(item)
+        val block = materialToBlockMap[item.material()] ?: return
         val symbol = LambdaSymbolManager.createLambdaSymbol(block, clicked, instance)
         val lambdaBlock = block.withTag(Tag.UUID("link"), symbol)
         instance.setBlock(clicked, lambdaBlock)
-    }
-
-    private fun getLambdaBlock(block: ItemStack): Block {
-        return when (block.material()) {
-            Material.STICKY_PISTON -> Block.STICKY_PISTON.withProperty("facing", "west")
-            Material.PISTON -> Block.PISTON.withProperty("facing", "east")
-            Material.JIGSAW -> Block.JIGSAW.withProperty("orientation", "west_up")
-            else -> Block.fromNamespaceId(block.material().namespace()) ?: Block.RED_CONCRETE
-        }
     }
 }
 

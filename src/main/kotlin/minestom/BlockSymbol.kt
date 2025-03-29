@@ -27,6 +27,7 @@ val blockSymbols = listOf(
 private val blockToSymbolMap = blockSymbols.associate { it.block to it.symbol }
 private val blockToPrettySymbolMap = blockSymbols.associate { it.block to it.prettySymbol }
 private val symbolToBlockMap = blockSymbols.associate { it.symbol to it.block }
+val materialToBlockMap = blockSymbols.associate { it.block.registry().material() to it.block }
 
 fun getParsableLambdaSymbol(block: Block): String {
     return blockToSymbolMap[block] ?: ""
