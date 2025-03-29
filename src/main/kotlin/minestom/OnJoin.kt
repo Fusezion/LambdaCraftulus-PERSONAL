@@ -24,7 +24,7 @@ fun onJoin(eventHandler: GlobalEventHandler, instanceContainer: InstanceContaine
 
         MinecraftServer.getSchedulerManager().scheduleTask({
             blockSymbols.forEach { blockSymbol ->
-                val material = Material.fromNamespaceId(blockSymbol.namespace) ?: Material.AIR
+                val material = blockSymbol.block.registry().material() ?: return@forEach
                 val item = ItemStack.of(material)
                 player.inventory.addItemStack(item)
             }
